@@ -21,9 +21,9 @@
 }
 
 .point-created {
-  opacity: 95% !important;
+  opacity: 0.91 !important;
+  z-index: 100000 !important;
   transition: opacity 0.4s !important;
-  z-index: 10000 !important;
 }
 
 #point-created h1 {
