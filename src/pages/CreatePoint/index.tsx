@@ -7,6 +7,8 @@ import { LeafletMouseEvent } from 'leaflet';
 import axios from 'axios';
 import api from '../../services/api';
 
+import Dropzone from '../../components/Dropzone';
+
 import './styles.css';
 
 import logo from '../../assets/logo.svg';
@@ -26,7 +28,7 @@ interface IBGECityResponse {
 }
 
 const CreatePoint: React.FC = () => {
-  const [items, setItems] = useState<Item[]>([]);
+  const [itemsList, setItemsList] = useState<Item[]>([]);
   const [ufs, setUfs] = useState<string[]>([]);
   const [cities, setCities] = useState<string[]>([]);
 
@@ -50,6 +52,7 @@ const CreatePoint: React.FC = () => {
     0,
     0,
   ]);
+  const [selectedFile, setSelectedFile] = useState<File>();
 
   const history = useHistory();
 
@@ -63,7 +66,7 @@ const CreatePoint: React.FC = () => {
 
   useEffect(() => {
     api.get('items').then((response) => {
-      setItems(response.data);
+      setItemsList(response.data);
     });
   }, []);
 
@@ -134,18 +137,23 @@ const CreatePoint: React.FC = () => {
     const uf = selectedUf;
     const city = selectedCity;
     const [latitude, longitude] = selectedPosition;
+    const items = selectedItems;
 
-    const data = {
-      name,
-      email,
-      whatsapp,
-      house_number,
-      uf,
-      city,
-      latitude,
-      longitude,
-      items: selectedItems,
-    };
+    const data = new FormData();
+
+    data.append('name', name);
+    data.append('email', email);
+    data.append('whatsapp', whatsapp);
+    data.append('house_number', house_number);
+    data.append('uf', uf);
+    data.append('city', city);
+    data.append('latitude', String(latitude));
+    data.append('longitude', String(longitude));
+    data.append('items', items.join(','));
+
+    if (selectedFile) {
+      data.append('image', selectedFile);
+    }
 
     const response = await api.post('points', data);
 
@@ -179,6 +187,9 @@ const CreatePoint: React.FC = () => {
             Cadastro do
             <br /> ponto de coleta
           </h1>
+
+          {/* Upload de imagem */}
+          <Dropzone onFileUploaded={setSelectedFile} />
 
           {/* Dados */}
           <fieldset>
@@ -290,7 +301,7 @@ const CreatePoint: React.FC = () => {
             </legend>
 
             <ul className="items-grid">
-              {items.map((item) => (
+              {itemsList.map((item) => (
                 <li
                   key={item.id}
                   onClick={() => handleSelectItem(item.id)}
